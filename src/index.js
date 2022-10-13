@@ -441,6 +441,7 @@ export default class Importabular {
       }
     });
     this._scrollIntoView(nc);
+    this._startEditing(this._focus);
   }
 
   _scrollIntoView({ x, y }) {
