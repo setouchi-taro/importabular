@@ -24,6 +24,8 @@ export function parseArrayString (str) {
           multiline = false;
           arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
         }
+        //改行除去 Excelから貼り付けた時に最後の行に改行が混じるため
+        arr[a][last] = arr[a][last].replace(/\r|\n/g, "");
       }
       else {
         if (c === clen - 1 && rows[r][c].indexOf('"') === 0 && (countQuotes(rows[r][c]) & 1)) {
