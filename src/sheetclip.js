@@ -37,6 +37,14 @@ export function parseArrayString (str) {
       }
     }
     if (!multiline) {
+      for (let d = 0 ; d < arr[a].length ; d++ ) {
+        //最終行かつ改行ありかつ末尾に"ありの場合、末尾の"除去
+        if ( d === arr[a].length - 1 && /\r?\n|\r/.test(arr[a][d]) && arr[a][d].slice(-1) === '"') {
+          arr[a][d] = arr[a][d].slice(0,-1);
+        }
+        //改行を全て除去
+        arr[a][d] = arr[a][d].replace(/\r?\n|\r/g, "");
+      }
       a += 1;
     }
   }
