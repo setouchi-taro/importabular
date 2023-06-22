@@ -2,8 +2,8 @@
  * Each one is mapped to the corresponding method on the instance. */
 import { _defaultCss } from "./_defaultCss";
 import { _LooseArray } from "./_LooseArray";
-import {_shift} from "./_shift";
-import {parseArrayString, stringifyArray} from "./sheetclip";
+import { _shift } from "./_shift";
+import { parseArrayString, stringifyArray } from "./sheetclip";
 const _events = [
   "mousedown",
   "mouseenter",
@@ -63,10 +63,10 @@ export default class Importabular {
     columns,
     checks,
     select = [],
-    bond = []
+    bond = [],
   }) {
     this.columns = columns;
-    this.checks = checks || (() => ({}));  
+    this.checks = checks || (() => ({}));
     this._runChecks(data);
     if (!node) {
       throw new Error(
@@ -89,7 +89,7 @@ export default class Importabular {
       border: "none",
       position: "absolute",
       background: "transparent",
-      borderRadius: "5px"
+      borderRadius: "5px",
     };
   }
   /** @private {Number} Current number of columns of the table. */
@@ -115,14 +115,14 @@ export default class Importabular {
    *
    * */
   getData() {
-    return this._data._toArr(this._width, this._height)
+    return this._data._toArr(this._width, this._height);
   }
   /** @private Runs the onchange callback*/
   _onDataChanged() {
-    const asArr=this.getData()
+    const asArr = this.getData();
     if (this._options.onChange) this._options.onChange(asArr);
     this._runChecks(asArr);
-    this._restyleAll()
+    this._restyleAll();
   }
   /** @private Create a div with the cell content and correct style */
   _renderTDContent(td, x, y) {
@@ -171,17 +171,17 @@ export default class Importabular {
     const tr2 = document.createElement("TR");
     const array = [];
 
-    if ( this._options.bond.length > 0 ) {
+    if (this._options.bond.length > 0) {
       // const downtr = document.createElement("TR");
       thead.appendChild(tr2);
       thead.appendChild(tr);
-      this.columns.forEach((col,index) => {
+      this.columns.forEach((col, index) => {
         const th = document.createElement("TH");
         const div = document.createElement("div");
         let bondflag = false;
-        for ( const bd of this._options.bond) {
-          if ( index >= bd.startRow  &&  index < bd.startRow + bd.rowSize){
-            if ( index === bd.startRow ) {
+        for (const bd of this._options.bond) {
+          if (index >= bd.startRow && index < bd.startRow + bd.rowSize) {
+            if (index === bd.startRow) {
               div.innerHTML = bd.label;
               bd.label && th.appendChild(div);
               th.setAttribute("colspan", bd.rowSize);
@@ -192,7 +192,7 @@ export default class Importabular {
             break;
           }
         }
-        if ( !bondflag ) {
+        if (!bondflag) {
           div.innerHTML = col.label;
           col.title && th.setAttribute("title", col.title);
           th.appendChild(div);
@@ -200,14 +200,14 @@ export default class Importabular {
           th.setAttribute("rowspan", "2");
         }
       });
-      array.forEach((t => {
+      array.forEach((t) => {
         const ee = document.createElement("TH");
         const ii = document.createElement("div");
         ii.innerHTML = t.label;
         t.title && ee.setAttribute("title", t.title);
         ee.appendChild(ii);
         tr.appendChild(ee);
-      }));
+      });
       table.appendChild(thead);
       table.appendChild(tbody);
       cwd.body.appendChild(table);
@@ -224,7 +224,7 @@ export default class Importabular {
         tr2.appendChild(th);
       });
     }
-    
+
     table.appendChild(thead);
     table.appendChild(tbody);
     cwd.body.appendChild(table);
@@ -284,7 +284,9 @@ export default class Importabular {
   paste = (e) => {
     if (this._editing) return;
     e.preventDefault();
-    const rows = parseArrayString((e.clipboardData || window.clipboardData).getData('text/plain'))
+    const rows = parseArrayString(
+      (e.clipboardData || window.clipboardData).getData("text/plain")
+    );
     const { rx, ry } = this._selection;
     const offset = { x: rx[0], y: ry[0] };
     for (let y = 0; y < rows.length; y++)
@@ -336,7 +338,7 @@ export default class Importabular {
     this._setAllSelectedCellsTo("");
   };
   keydown = (e) => {
-    if (e.ctrlKey){ 
+    if (e.ctrlKey) {
       if (this._editing) {
         e.preventDefault();
         this._revertEdit();
@@ -399,7 +401,7 @@ export default class Importabular {
         this._startEditing(this._focus);
         arrow_with_shift = true;
       }
-      if (e.shiftKey){ 
+      if (e.shiftKey) {
         if (arrow_with_shift) {
           e.preventDefault();
           this._stopEditing();
@@ -507,7 +509,11 @@ export default class Importabular {
       this.cwd.getSelection().addRange(range);
       return;
     }
-    if (this._editing && (this._getCoords(e)["x"] !== this._editing["x"] || this._getCoords(e)["y"] !== this._editing["y"])) {
+    if (
+      this._editing &&
+      (this._getCoords(e)["x"] !== this._editing["x"] ||
+        this._getCoords(e)["y"] !== this._editing["y"])
+    ) {
       this._stopEditing();
     }
     this._changeSelectedCellsStyle(() => {
@@ -517,7 +523,7 @@ export default class Importabular {
         e
       );
       this._selecting = true;
-      this._startEditing(this._focus);  
+      this._startEditing(this._focus);
     });
   };
   mouseenter = (e) => {
@@ -542,7 +548,7 @@ export default class Importabular {
       this._changeSelectedCellsStyle(() => {
         this._selectionEnd = this._getCoords(e);
         this._endSelection();
-        
+
         // In a multi-byte environment(Japanese etc),want to enter edit mode after click
         this._startEditing(this._focus);
         if (
@@ -591,17 +597,17 @@ export default class Importabular {
     const tdSize = td.getBoundingClientRect();
     const cellSize = td.firstChild.getBoundingClientRect();
 
-    if (td.firstChild.nodeName == "SELECT") {      
+    if (td.firstChild.nodeName == "SELECT") {
       return;
     } else {
       this._option_pos = {};
     }
 
     // remove the current content
-    if (td.firstChild.nodeName !== "SELECT"){
-      try{
+    if (td.firstChild.nodeName !== "SELECT") {
+      try {
         td.removeChild(td.firstChild);
-      }catch(e){
+      } catch (e) {
         // console.log(td.firstChild.nodeName);
         // console.log(e);
         return;
@@ -619,7 +625,6 @@ export default class Importabular {
       //add the select
       this._options.select.forEach((sel, index) => {
         if (x === sel.rowIndex) {
-
           //const select = document.createElement("select");
           select.value = this._getVal(x, y);
           td.appendChild(select);
@@ -640,7 +645,7 @@ export default class Importabular {
           select.addEventListener("blur", this._stopEditing);
           // select.addEventListener("keydown", this._blurIfEnter);
           select.addEventListener("keydown", this._cancelKeyOnSelect);
-          select.addEventListener("change",this._selectChange);
+          select.addEventListener("change", this._selectChange);
 
           // add empty
           // const empty = document.createElement("option");
@@ -649,7 +654,7 @@ export default class Importabular {
           // select.appendChild(empty);
 
           // add the option of select
-          this._options.select[index].selectableInfo.forEach(ele => {
+          this._options.select[index].selectableInfo.forEach((ele) => {
             const option = document.createElement("option");
             if (ele.text == this._getVal(x, y)) {
               option.selected = true;
@@ -682,33 +687,33 @@ export default class Importabular {
         input.addEventListener("blur", this._stopEditing);
         input.addEventListener("keydown", this._blurIfEnter);
       }
-    } else { 
+    } else {
       // add the input
       //const input = document.createElement("input");
       input.type = "text";
       input.value = this._getVal(x, y);
       td.appendChild(input);
-  
+
       // Make the new content fit the past size
       Object.assign(td.style, {
         width: tdSize.width - 2,
         height: tdSize.height,
       });
-  
+
       Object.assign(input.style, {
         width: `${cellSize.width}px`,
         height: tdSize.height - 2,
         outline: "none",
         background: "transparent",
       });
-  
+
       input.focus();
       input.addEventListener("blur", this._stopEditing);
       input.addEventListener("keydown", this._blurIfEnter);
     }
   }
 
-  _destroyEditing() {  
+  _destroyEditing() {
     if (this._editing) {
       const { x, y } = this._editing;
       const input = this._getCell(x, y).firstChild;
@@ -751,12 +756,18 @@ export default class Importabular {
   };
   _cancelKeyOnSelect = (e) => {
     const code = e.keyCode;
-    if (code === 13 || code === 33 || code == 34 || code === 36 || code === 35) {
+    if (
+      code === 13 ||
+      code === 33 ||
+      code == 34 ||
+      code === 36 ||
+      code === 35
+    ) {
       // Enter, PageUp, PageDown, Home, End
       this._stopEditing();
       e.preventDefault();
     }
-  }
+  };
   _selectChange = (e) => {
     // console.log(e);
     this._stopEditing();
@@ -782,16 +793,15 @@ export default class Importabular {
         if (this._fitBounds({ x, y })) cb({ x, y });
   }
   _restyle = ({ x, y }) => {
-    const td =this._getCell(x, y)
+    const td = this._getCell(x, y);
     td.className = this._classNames(x, y);
     const title = _fromArr(this.checkResults.titles, x, y);
     if (title) td.setAttribute("title", title);
     else td.removeAttribute("title");
   };
-  _restyleAll(){
-    for(var x=0;x<this._width;x++)
-    for(var y=0;y<this._height;y++)
-      this._restyle({x,y});
+  _restyleAll() {
+    for (var x = 0; x < this._width; x++)
+      for (var y = 0; y < this._height; y++) this._restyle({ x, y });
   }
   _selectionSize() {
     const { rx, ry } = this._selection;
@@ -841,7 +851,7 @@ export default class Importabular {
       node = node.parentElement;
     }
     return !(node.getAttribute("x") == null || node.getAttribute("y") == null);
-  }  
+  }
   /** Replace the current data with the provided 2D array.
    * @param {[[String]]} data the new data, as a 2D array.
    * */
