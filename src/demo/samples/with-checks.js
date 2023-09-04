@@ -23,7 +23,7 @@ const sheet = new Importabular({
     ["Bad data", "33366666", "email@"],
     ["", "", "missing@name"],
   ],
-  select: [{"rowIndex":1,"selectableInfo":[{"value":1,"text":"x"},{"value":2,"text":"y"}]}],
+  select: [{"rowIndex":1,"selectableInfo":[{"value":1,"text":""},{"value":2,"text":"33366666"},{"value":3,"text":"+333555555"}]}],
   checks: checkData,
   css: `
   td>div{
@@ -42,6 +42,8 @@ const sheet = new Importabular({
   onChange(data) {
     console.table(data);
   },
+  width: "800px",
+  height: "450px",
 });
 
 function checkData(data) {

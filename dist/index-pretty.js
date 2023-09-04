@@ -11,7 +11,7 @@
     "use strict";
     var t = {
         103: (t, e, i) => {
-          i.d(e, { default: () => l });
+          i.d(e, { default: () => r });
           class s {
             constructor() {
               var t, e;
@@ -83,7 +83,7 @@
               t
             );
           }
-          const r = [
+          const l = [
             "mousedown",
             "mouseenter",
             "mouseup",
@@ -96,7 +96,7 @@
             "cut",
             "copy",
           ];
-          class l {
+          class r {
             constructor(t) {
               h(this, "_width", 1),
                 h(this, "_height", 1),
@@ -110,10 +110,10 @@
                         s,
                         n,
                         h,
-                        r,
                         l,
-                        a = [],
-                        d = 0;
+                        r,
+                        d = [],
+                        a = 0;
                       for (
                         (s = t.split("\n")).length > 1 &&
                           "" === s[s.length - 1] &&
@@ -128,28 +128,28 @@
                           n < h;
                           n += 1
                         )
-                          a[d] || (a[d] = []),
-                            r && 0 === n
-                              ? ((l = a[d].length - 1),
-                                (a[d][l] = a[d][l] + "\n" + s[e][0]),
-                                r &&
+                          d[a] || (d[a] = []),
+                            l && 0 === n
+                              ? ((r = d[a].length - 1),
+                                (d[a][r] = d[a][r] + "\n" + s[e][0]),
+                                l &&
                                   1 & o(s[e][0]) &&
-                                  ((r = !1),
-                                  (a[d][l] = a[d][l]
-                                    .substring(0, a[d][l].length - 1)
+                                  ((l = !1),
+                                  (d[a][r] = d[a][r]
+                                    .substring(0, d[a][r].length - 1)
                                     .replace(/""/g, '"'))))
                               : n === h - 1 &&
                                 0 === s[e][n].indexOf('"') &&
                                 1 & o(s[e][n])
-                              ? (a[d].push(
+                              ? (d[a].push(
                                   s[e][n].substring(1).replace(/""/g, '"')
                                 ),
-                                (r = !0))
-                              : (a[d].push(s[e][n].replace(/""/g, '"')),
-                                (r = !1));
-                        r || (d += 1);
+                                (l = !0))
+                              : (d[a].push(s[e][n].replace(/""/g, '"')),
+                                (l = !1));
+                        l || (a += 1);
                       }
-                      return a;
+                      return d;
                     })(
                       (t.clipboardData || window.clipboardData).getData(
                         "text/plain"
@@ -159,7 +159,17 @@
                     n = { x: i[0], y: s[0] };
                   for (let t = 0; t < e.length; t++)
                     for (let i = 0; i < e[0].length; i++)
-                      this._setVal(n.x + i, n.y + t, e[t][i]);
+                      this._options.disEditable[0].includes(n.x + i) ||
+                        this._options.disEditable[1].includes(n.y + t) ||
+                        (i === e[0].length - 1 &&
+                          /\r?\n|\r/.test(e[t][i]) &&
+                          '"' === e[t][i].slice(-1) &&
+                          (e[t][i] = e[t][i].slice(0, -1)),
+                        this._setVal(
+                          n.x + i,
+                          n.y + t,
+                          e[t][i].replace(/\r?\n|\r/g, "")
+                        ));
                   this._changeSelectedCellsStyle(() => {
                     (this._selectionStart = n),
                       (this._selectionEnd = {
@@ -199,7 +209,7 @@
                 }),
                 h(this, "cut", (t) => {
                   this._editing ||
-                    (this.copy(t), this._setAllSelectedCellsTo(""));
+                    (this.copy(t), this._setAllEditableSelectedCellsTo(""));
                 }),
                 h(this, "keydown", (t) => {
                   if (t.ctrlKey)
@@ -309,14 +319,16 @@
                       this._changeSelectedCellsStyle(() => {
                         (this._selectionEnd = this._getCoords(t)),
                           this._endSelection(),
-                          this._startEditing(this._focus),
-                          this._lastMouseUp &&
-                            this._lastMouseUp > Date.now() - 300 &&
-                            this._lastMouseUpTarget.x ===
-                              this._selectionEnd.x &&
-                            this._lastMouseUpTarget.y ===
-                              this._selectionEnd.y &&
-                            this._startEditing(this._selectionEnd),
+                          (this._options.clickChangeColorX &&
+                            this._options.clickChangeColorX[this._focus.x]) ||
+                            (this._startEditing(this._focus),
+                            this._lastMouseUp &&
+                              this._lastMouseUp > Date.now() - 300 &&
+                              this._lastMouseUpTarget.x ===
+                                this._selectionEnd.x &&
+                              this._lastMouseUpTarget.y ===
+                                this._selectionEnd.y &&
+                              this._startEditing(this._selectionEnd)),
                           (this._lastMouseUp = Date.now()),
                           (this._lastMouseUpTarget = this._selectionEnd);
                       }));
@@ -352,7 +364,9 @@
                   const s = i.firstChild;
                   s.removeEventListener("blur", this._stopEditing),
                     s.removeEventListener("keydown", this._blurIfEnter),
-                    this._setVal(t, e, s.value),
+                    this._options.disEditable[0].includes(t) ||
+                      this._options.disEditable[1].includes(e) ||
+                      this._setVal(t, e, s.value),
                     this._onDataChanged(),
                     i.removeChild(s),
                     (this._editing = null),
@@ -372,10 +386,11 @@
                 h(this, "_restyle", ({ x: t, y: e }) => {
                   const i = this._getCell(t, e);
                   i.className = this._classNames(t, e);
-                  const s = a(this.checkResults.titles, t, e);
+                  const s = d(this.checkResults.titles, t, e);
                   s ? i.setAttribute("title", s) : i.removeAttribute("title");
                 }),
                 h(this, "_refreshDisplayedValue", ({ x: t, y: e }) => {
+                  if (this._options.deleteRow === t) return;
                   const i = this._getCell(t, e).firstChild;
                   "DIV" === i.tagName &&
                     (i.textContent = this._divContent(t, e)),
@@ -384,6 +399,7 @@
                 this._saveConstructorOptions(t),
                 this._setupDom(),
                 this._replaceDataWithArray(t.data),
+                this._addDelRow(t.data),
                 this._incrementToFit({
                   x: this.columns.length - 1,
                   y: this._options.minRows - 1,
@@ -402,15 +418,18 @@
               maxRows: n = 1 / 0,
               css: o = "",
               width: h = "100%",
-              height: r = "80vh",
-              columns: l,
-              checks: a,
-              select: d = [],
+              height: l = "80vh",
+              columns: r,
+              checks: d,
+              select: a = [],
               bond: c = [],
+              disEditable: _ = [[], []],
+              clickChangeColorX: u = null,
+              deleteRow: p = null,
             }) {
               if (
-                ((this.columns = l),
-                (this.checks = a || (() => ({}))),
+                ((this.columns = r),
+                (this.checks = d || (() => ({}))),
                 this._runChecks(t),
                 !e)
               )
@@ -423,14 +442,17 @@
                   minRows: s,
                   maxRows: n,
                   css:
-                    "\nhtml{\n  overflow: auto;\n}\n*{\n  box-sizing: border-box;\n}\niframe{\n  position:absolute;\n}\nbody{\n  padding: 0; \n  margin: 0;\n}\ntable{\n  border-spacing: 0;\n  background: white;\n  border: 1px solid #ddd;\n  border-width: 0 1px 1px 0;\n  font-size: 16px;\n  font-family: sans-serif;\n  border-collapse: separate;\n  min-width:100%;\n}\ntd, th{\n  padding:0;\n  border: 1px solid;\n  border-color: #ddd transparent transparent #ddd; \n}\ntd.selected.multi:not(.editing){\n  background:#d7f2f9;\n} \ntd.focus:not(.editing){\n  border-color: #13ac59;\n} \ntd>*, th>*{\n  border:none;\n  padding:10px;\n  min-width:10px;\n  min-height: 40px;\n  font:inherit;\n  line-height: 20px;\n  color:inherit;\n  white-space: normal;\n}\ntd>div::selection {\n    color: none;\n    background: none;\n}\n\n.placeholder div{\n  user-select:none;\n  color:rgba(0,0,0,0.2);\n}\n*[title] div{cursor:help;}\nth{text-align:left;}\n" +
+                    "\nhtml{\n  overflow: auto;\n}\n*{\n  box-sizing: border-box;\n}\niframe{\n  position:absolute;\n}\nbody{\n  padding: 0; \n  margin: 0;\n}\ntable{\n  border-spacing: 0;\n  background: white;\n  border: 1px solid #ddd;\n  border-width: 0 1px 1px 0;\n  font-size: 16px;\n  font-family: sans-serif;\n  border-collapse: separate;\n  min-width:100%;\n}\ntd, th{\n  padding:0;\n  border: 1px solid;\n  border-color: #ddd transparent transparent #ddd; \n}\ntd.selected.multi:not(.editing){\n  background:#d7f2f9;\n} \ntd.focus:not(.editing){\n  border-color: #13ac59;\n} \ntd>*, th>*{\n  border:none;\n  padding:10px;\n  min-width:10px;\n  min-height: 40px;\n  font:inherit;\n  line-height: 20px;\n  color:inherit;\n  white-space: normal;\n}\ntd>div::selection {\n    color: none;\n    background: none;\n}\n\n.delete-btn {\n  background:#f5b2b2;\n  border: 1px solid #d32f18;\n  border-radius:5px;\n  height:20px;\n  color:#d32f18;\n  cursor: pointer;\n  width:100%;\n}\n\n.placeholder div{\n  user-select:none;\n  color:rgba(0,0,0,0.2);\n}\n*[title] div{cursor:help;}\nth{text-align:left;}\n" +
                     o,
-                  select: d,
+                  select: a,
                   bond: c,
+                  disEditable: _,
+                  clickChangeColorX: u,
+                  deleteRow: p,
                 }),
                 (this._iframeStyle = {
                   width: h,
-                  height: r,
+                  height: l,
                   border: "none",
                   position: "absolute",
                   background: "transparent",
@@ -452,6 +474,27 @@
             }
             getData() {
               return this._data._toArr(this._width, this._height);
+            }
+            getDataPlus() {
+              let t = this._data._toArr(this._width, this._height);
+              for (let e = 0; e < this._height; e++) {
+                const i = this._getCell(this._options.deleteRow, e);
+                i && i.firstChild && (t[e][this._options.deleteRow] = "1");
+              }
+              return t;
+            }
+            getColor() {
+              const t = [];
+              for (let e = 0; e < this._height; e++) {
+                t.push([]);
+                for (let i = 0; i < this._width; i++) {
+                  const s = this._getCell(i, e);
+                  s.hasAttribute("prior") && "on" === s.getAttribute("prior")
+                    ? t[e].push(1)
+                    : t[e].push(0);
+                }
+              }
+              return t;
             }
             _onDataChanged() {
               const t = this.getData();
@@ -491,7 +534,7 @@
                 n = document.createElement("THEAD"),
                 o = document.createElement("TR"),
                 h = document.createElement("TR"),
-                l = [];
+                r = [];
               this._options.bond.length > 0
                 ? (n.appendChild(h),
                   n.appendChild(o),
@@ -506,7 +549,7 @@
                           o.label && i.appendChild(s),
                           i.setAttribute("colspan", o.rowSize),
                           h.appendChild(i)),
-                          l.push(t),
+                          r.push(t),
                           (n = !0);
                         break;
                       }
@@ -517,7 +560,7 @@
                       h.appendChild(i),
                       i.setAttribute("rowspan", "2"));
                   }),
-                  l.forEach((t) => {
+                  r.forEach((t) => {
                     const e = document.createElement("TH"),
                       i = document.createElement("div");
                     (i.innerHTML = t.label),
@@ -549,16 +592,17 @@
                 s.appendChild(e);
                 for (let i = 0; i < this._width; i++) this._addCell(e, i, t);
               }
-              r.forEach((t) => e.addEventListener(t, this[t], !0));
+              l.forEach((t) => e.addEventListener(t, this[t], !0));
             }
             destroy() {
               this._destroyEditing(),
-                r.forEach((t) => this.cwd.removeEventListener(t, this[t], !0)),
+                l.forEach((t) => this.cwd.removeEventListener(t, this[t], !0)),
                 this.iframe.parentElement.removeChild(this.iframe);
             }
             _addCell(t, e, i) {
               const s = document.createElement("td");
-              t.appendChild(s), this._renderTDContent(s, e, i);
+              t.appendChild(s),
+                this._options.deleteRow !== e && this._renderTDContent(s, e, i);
             }
             _incrementHeight() {
               if (!this._fitBounds({ x: 0, y: this._height })) return !1;
@@ -584,6 +628,30 @@
               for (; t > this._width - 1 && this._incrementWidth(); );
               for (; e > this._height - 1 && this._incrementHeight(); );
             }
+            _addDelRow(t = [[]]) {
+              for (let e = 0; e < this._height; e++) {
+                const i = this._getCell(this._options.deleteRow, e);
+                if (
+                  (i && i.firstChild && i.firstChild.remove(),
+                  t[e] &&
+                    t[e][this._options.deleteRow] &&
+                    "1" === t[e][this._options.deleteRow])
+                ) {
+                  const t = document.createElement("button");
+                  if (i) {
+                    if (i.firstChild) return;
+                    i.appendChild(t),
+                      (t.innerHTML = "削除"),
+                      t.classList.add("delete-btn"),
+                      t.addEventListener("click", () => {
+                        this.setData(
+                          this.getDataPlus().filter((t, i) => i !== e)
+                        );
+                      });
+                  }
+                }
+              }
+            }
             _getSelectionAsArray() {
               const { rx: t, ry: e } = this._selection;
               if (t[0] === t[1]) return null;
@@ -607,10 +675,23 @@
                   this._refreshDisplayedValue
                 );
             }
+            _setAllEditableSelectedCellsTo(t) {
+              this._forSelectionCoord(this._selection, ({ x: e, y: i }) => {
+                this._options.disEditable[0].includes(e) ||
+                  this._options.disEditable[1].includes(i) ||
+                  this._setVal(e, i, t);
+              }),
+                this._onDataChanged(),
+                this._forSelectionCoord(
+                  this._selection,
+                  this._refreshDisplayedValue
+                );
+            }
             _moveCursor({ x: t = 0, y: e = 0 }, i) {
               const s = i ? this._selectionEnd : this._selectionStart,
                 n = { x: s.x + t, y: s.y + e };
               this._fitBounds(n) &&
+                n.x !== this._options.deleteRow &&
                 (this._stopEditing(),
                 this._incrementToFit(n),
                 this._changeSelectedCellsStyle(() => {
@@ -623,27 +704,27 @@
             _tabCursorInSelection(t, e = 1) {
               let { x: i, y: s } = this._focus || { x: 0, y: 0 };
               const o = this._selectionSize(),
-                { rx: h, ry: r } =
+                { rx: h, ry: l } =
                   o > 1
                     ? this._selection
                     : {
                         rx: [0, this.columns.length],
                         ry: [0, this._options.maxRows],
                       };
-              let l;
-              if (t) l = n(i, s, e, h[0], h[1] - 1, r[0], r[1] - 1);
+              let r;
+              if (t) r = n(i, s, e, h[0], h[1] - 1, l[0], l[1] - 1);
               else {
-                const t = n(s, i, e, r[0], r[1] - 1, h[0], h[1] - 1);
-                l = { x: t.y, y: t.x };
+                const t = n(s, i, e, l[0], l[1] - 1, h[0], h[1] - 1);
+                r = { x: t.y, y: t.x };
               }
-              this._fitBounds(l) &&
+              this._fitBounds(r) &&
                 (this._stopEditing(),
-                this._incrementToFit(l),
+                this._incrementToFit(r),
                 this._changeSelectedCellsStyle(() => {
-                  (this._focus = l),
-                    o <= 1 && (this._selectionStart = this._selectionEnd = l);
+                  (this._focus = r),
+                    o <= 1 && (this._selectionStart = this._selectionEnd = r);
                 }),
-                this._scrollIntoView(l));
+                this._scrollIntoView(r));
             }
             _scrollIntoView({ x: t, y: e }) {
               this._getCell(t, e).scrollIntoView({
@@ -656,51 +737,97 @@
             }
             _startEditing({ x: t, y: e }) {
               this._editing = { x: t, y: e };
-              const i = this._getCell(t, e),
-                s = i.getBoundingClientRect(),
-                n = i.firstChild.getBoundingClientRect();
-              if ("SELECT" == i.firstChild.nodeName) return;
-              if (((this._option_pos = {}), "SELECT" !== i.firstChild.nodeName))
-                try {
-                  i.removeChild(i.firstChild);
-                } catch (t) {
-                  return;
+              const i = this._getCell(t, e);
+              if (
+                this._options.clickChangeColorX &&
+                this._options.clickChangeColorX[t]
+              )
+                if (i.hasAttribute("style") && "" !== i.getAttribute("style"))
+                  i.removeAttribute("style"), i.removeAttribute("prior");
+                else {
+                  const s = this._options.clickChangeColorX[t];
+                  this._options.clickChangeColorX.target[s].linkX.forEach(
+                    (n) => {
+                      if (n === t)
+                        i.setAttribute("prior", "on"),
+                          Object.assign(
+                            i.style,
+                            this._options.clickChangeColorX.target[s].style
+                          );
+                      else {
+                        const t = this._getCell(n, e);
+                        t.removeAttribute("style"), t.removeAttribute("prior");
+                      }
+                    }
+                  );
                 }
-              const o = document.createElement("input"),
-                h = document.createElement("select");
-              let r = !0;
-              this._options.select.length > 0
-                ? (this._options.select.forEach((n, o) => {
-                    t === n.rowIndex &&
-                      ((h.value = this._getVal(t, e)),
-                      i.appendChild(h),
+              if (
+                !this._options.disEditable[0].includes(t) &&
+                !this._options.disEditable[1].includes(e) &&
+                this._options.deleteRow !== t
+              ) {
+                const s = i.getBoundingClientRect(),
+                  n = i.firstChild.getBoundingClientRect();
+                if ("SELECT" == i.firstChild.nodeName) return;
+                if (
+                  ((this._option_pos = {}), "SELECT" !== i.firstChild.nodeName)
+                )
+                  try {
+                    i.removeChild(i.firstChild);
+                  } catch (t) {
+                    return;
+                  }
+                const o = document.createElement("input"),
+                  h = document.createElement("select");
+                let l = !0;
+                this._options.select.length > 0
+                  ? (this._options.select.forEach((n, o) => {
+                      t === n.rowIndex &&
+                        ((h.value = this._getVal(t, e)),
+                        i.appendChild(h),
+                        Object.assign(i.style, {
+                          width: s.width - 2,
+                          height: s.height,
+                        }),
+                        Object.assign(h.style, {
+                          width: s.width - 2,
+                          height: s.height - 2,
+                          outline: "none",
+                          background: "transparent",
+                        }),
+                        h.focus(),
+                        h.addEventListener("blur", this._stopEditing),
+                        h.addEventListener("keydown", this._cancelKeyOnSelect),
+                        h.addEventListener("change", this._selectChange),
+                        this._options.select[o].selectableInfo.forEach((i) => {
+                          const s = document.createElement("option");
+                          i.text == this._getVal(t, e) && (s.selected = !0),
+                            (s.text = i.text),
+                            (s.value = i.text),
+                            h.appendChild(s);
+                        }),
+                        (l = !1),
+                        (this._option_pos.x = t),
+                        (this._option_pos.y = e));
+                    }),
+                    l &&
+                      ((o.type = "text"),
+                      (o.value = this._getVal(t, e)),
+                      i.appendChild(o),
                       Object.assign(i.style, {
                         width: s.width - 2,
                         height: s.height,
                       }),
-                      Object.assign(h.style, {
-                        width: s.width - 2,
+                      Object.assign(o.style, {
+                        width: `${n.width}px`,
                         height: s.height - 2,
                         outline: "none",
                         background: "transparent",
                       }),
-                      h.focus(),
-                      h.addEventListener("blur", this._stopEditing),
-                      h.addEventListener("keydown", this._cancelKeyOnSelect),
-                      h.addEventListener("change", this._selectChange),
-                      this._options.select[o].selectableInfo.forEach((i) => {
-                        const s = document.createElement("option");
-                        i.text == this._getVal(t, e) && (s.selected = !0),
-                          (s.text = i.text),
-                          (s.value = i.text),
-                          h.appendChild(s);
-                      }),
-                      (r = !1),
-                      (this._option_pos.x = t),
-                      (this._option_pos.y = e));
-                  }),
-                  r &&
-                    ((o.type = "text"),
+                      o.focus(),
+                      o.addEventListener("blur", this._stopEditing),
+                      o.addEventListener("keydown", this._blurIfEnter)))
+                  : ((o.type = "text"),
                     (o.value = this._getVal(t, e)),
                     i.appendChild(o),
                     Object.assign(i.style, {
@@ -715,23 +842,8 @@
                     }),
                     o.focus(),
                     o.addEventListener("blur", this._stopEditing),
-                    o.addEventListener("keydown", this._blurIfEnter)))
-                : ((o.type = "text"),
-                  (o.value = this._getVal(t, e)),
-                  i.appendChild(o),
-                  Object.assign(i.style, {
-                    width: s.width - 2,
-                    height: s.height,
-                  }),
-                  Object.assign(o.style, {
-                    width: `${n.width}px`,
-                    height: s.height - 2,
-                    outline: "none",
-                    background: "transparent",
-                  }),
-                  o.focus(),
-                  o.addEventListener("blur", this._stopEditing),
-                  o.addEventListener("keydown", this._blurIfEnter));
+                    o.addEventListener("keydown", this._blurIfEnter));
+              }
             }
             _destroyEditing() {
               if (this._editing) {
@@ -796,7 +908,7 @@
                   e === this._editing.y &&
                   (n += " editing"),
                 this._getVal(t, e) || (n += " placeholder"),
-                (n += " " + a(this.checkResults.classNames, t, e)),
+                (n += " " + d(this.checkResults.classNames, t, e)),
                 n
               );
             }
@@ -826,7 +938,9 @@
               );
             }
             setData(t) {
-              this._data._clear(), this._replaceDataWithArray(t);
+              this._data._clear(),
+                this._replaceDataWithArray(t),
+                this._addDelRow(t);
               for (let t = 0; t < this._width; t++)
                 for (let e = 0; e < this._height; e++)
                   this._refreshDisplayedValue({ x: t, y: e });
@@ -834,7 +948,7 @@
             _replaceDataWithArray(t = [[]]) {
               t.forEach((t, e) => {
                 t.forEach((t, i) => {
-                  this._setVal(i, e, t);
+                  this._options.deleteRow !== i && this._setVal(i, e, t);
                 });
               });
             }
@@ -851,7 +965,7 @@
               return this.tbody.children[e].children[t];
             }
           }
-          function a(t, e, i) {
+          function d(t, e, i) {
             return (t && t[i] && t[i][e]) || "";
           }
         },

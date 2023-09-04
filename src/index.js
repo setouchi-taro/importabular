@@ -38,6 +38,7 @@ export default class Importabular {
     this._saveConstructorOptions(options);
     this._setupDom();
     this._replaceDataWithArray(options.data);
+    this._addDelRow(options.data);
     this._incrementToFit({
       x: this.columns.length - 1,
       y: this._options.minRows - 1,
@@ -63,7 +64,10 @@ export default class Importabular {
     columns,
     checks,
     select = [],
-    bond = []
+    bond = [],
+    disEditable = [[],[]],
+    clickChangeColorX = null,
+    deleteRow = null,
   }) {
     this.columns = columns;
     this.checks = checks || (() => ({}));  
@@ -82,6 +86,9 @@ export default class Importabular {
       css: _defaultCss + css,
       select,
       bond,
+      disEditable,
+      clickChangeColorX,
+      deleteRow
     };
     this._iframeStyle = {
       width,
@@ -116,6 +123,33 @@ export default class Importabular {
    * */
   getData() {
     return this._data._toArr(this._width, this._height)
+  }
+
+  getDataPlus() {
+    let res = this._data._toArr(this._width, this._height)
+    for (let y = 0; y < this._height; y++) {
+      const td = this._getCell(this._options.deleteRow, y);
+      if (td && td.firstChild) {
+        res[y][this._options.deleteRow] = "1";
+      }
+    }
+    return res
+  }
+
+  getColor() {
+    const result = [];
+    for (let y = 0; y < this._height; y++) {
+      result.push([]);
+      for (let x = 0; x < this._width; x++) {
+        const td = this._getCell(x, y);
+        if (td.hasAttribute('prior') && td.getAttribute('prior') === "on") {
+          result[y].push(1);
+        } else {
+          result[y].push(0);
+        }
+      }
+    }
+    return result;
   }
   /** @private Runs the onchange callback*/
   _onDataChanged() {
@@ -253,7 +287,9 @@ export default class Importabular {
   _addCell(tr, x, y) {
     const td = document.createElement("td");
     tr.appendChild(td);
-    this._renderTDContent(td, x, y);
+    if(this._options.deleteRow !== x ) {
+      this._renderTDContent(td, x, y);
+    }
   }
   _incrementHeight() {
     if (!this._fitBounds({ x: 0, y: this._height })) return false;
@@ -279,6 +315,27 @@ export default class Importabular {
   _incrementToFit({ x, y }) {
     while (x > this._width - 1 && this._incrementWidth());
     while (y > this._height - 1 && this._incrementHeight());
+    
+  }
+  _addDelRow(data = [[]]) {
+    for (let y = 0; y < this._height; y++) {
+      const td = this._getCell(this._options.deleteRow, y);
+      if (td && td.firstChild) {
+        td.firstChild.remove();
+      }
+      if (data[y] && data[y][this._options.deleteRow] && data[y][this._options.deleteRow] === "1") {
+        const btn = document.createElement("button");
+        if (td) {
+          if (td.firstChild) {return}
+          td.appendChild(btn);
+          btn.innerHTML = "削除";
+          btn.classList.add("delete-btn");
+          btn.addEventListener('click', () => {
+            this.setData(this.getDataPlus().filter((data,index) => index !== y))
+          });
+        }  
+      }
+    }
   }
   /** @private Handles the paste event on the node.*/
   paste = (e) => {
@@ -292,10 +349,12 @@ export default class Importabular {
       // if the paste data had various row length, we only
       // paste a clean rectangle
       for (let x = 0; x < rows[0].length; x++) {
-        if (x === rows[0].length - 1 && /\r?\n|\r/.test(rows[y][x]) && rows[y][x].slice(-1) === '"') {
-          rows[y][x] = rows[y][x].slice(0, -1);
+        if(!this._options.disEditable[0].includes(offset.x + x) && !this._options.disEditable[1].includes(offset.y + y)) {
+          if (x === rows[0].length - 1 && /\r?\n|\r/.test(rows[y][x]) && rows[y][x].slice(-1) === '"') {
+            rows[y][x] = rows[y][x].slice(0, -1);
+          }
+          this._setVal(offset.x + x, offset.y + y, rows[y][x].replace(/\r?\n|\r/g, ""));
         }
-        this._setVal(offset.x + x, offset.y + y, rows[y][x].replace(/\r?\n|\r/g, ""));
       }
     }
     this._changeSelectedCellsStyle(() => {
@@ -338,7 +397,7 @@ export default class Importabular {
   cut = (e) => {
     if (this._editing) return;
     this.copy(e);
-    this._setAllSelectedCellsTo("");
+    this._setAllEditableSelectedCellsTo("");
   };
   keydown = (e) => {
     if (e.ctrlKey){ 
@@ -429,10 +488,20 @@ export default class Importabular {
     this._onDataChanged();
     this._forSelectionCoord(this._selection, this._refreshDisplayedValue);
   }
+  _setAllEditableSelectedCellsTo(value) {
+    this._forSelectionCoord(this._selection, ({ x, y }) => {
+      if(!this._options.disEditable[0].includes(x) && !this._options.disEditable[1].includes(y)) {
+        this._setVal(x, y, value)
+      }
+    });
+    this._onDataChanged();
+    this._forSelectionCoord(this._selection, this._refreshDisplayedValue);
+  }
   _moveCursor({ x = 0, y = 0 }, shiftSelectionEnd) {
     const curr = shiftSelectionEnd ? this._selectionEnd : this._selectionStart;
     const nc = { x: curr.x + x, y: curr.y + y };
     if (!this._fitBounds(nc)) return;
+    if (nc.x === this._options.deleteRow) return;
     this._stopEditing();
     this._incrementToFit(nc);
     this._changeSelectedCellsStyle(() => {
@@ -549,14 +618,16 @@ export default class Importabular {
         this._endSelection();
         
         // In a multi-byte environment(Japanese etc),want to enter edit mode after click
-        this._startEditing(this._focus);
-        if (
-          this._lastMouseUp &&
-          this._lastMouseUp > Date.now() - 300 &&
-          this._lastMouseUpTarget.x === this._selectionEnd.x &&
-          this._lastMouseUpTarget.y === this._selectionEnd.y
-        ) {
-          this._startEditing(this._selectionEnd);
+        if(!this._options.clickChangeColorX || !this._options.clickChangeColorX[this._focus.x]) {
+          this._startEditing(this._focus);
+          if (
+            this._lastMouseUp &&
+            this._lastMouseUp > Date.now() - 300 &&
+            this._lastMouseUpTarget.x === this._selectionEnd.x &&
+            this._lastMouseUpTarget.y === this._selectionEnd.y
+          ) {
+            this._startEditing(this._selectionEnd);
+          }
         }
         this._lastMouseUp = Date.now();
         this._lastMouseUpTarget = this._selectionEnd;
@@ -592,124 +663,145 @@ export default class Importabular {
   _startEditing({ x, y }) {
     this._editing = { x, y };
     const td = this._getCell(x, y);
-    // Measure the current content
-    const tdSize = td.getBoundingClientRect();
-    const cellSize = td.firstChild.getBoundingClientRect();
-
-    if (td.firstChild.nodeName == "SELECT") {      
-      return;
-    } else {
-      this._option_pos = {};
-    }
-
-    // remove the current content
-    if (td.firstChild.nodeName !== "SELECT"){
-      try{
-        td.removeChild(td.firstChild);
-      }catch(e){
-        // console.log(td.firstChild.nodeName);
-        // console.log(e);
-        return;
+    
+    //test
+    if(this._options.clickChangeColorX && this._options.clickChangeColorX[x]) {
+      if(td.hasAttribute('style') && td.getAttribute('style') !== "") {
+        td.removeAttribute('style')
+        td.removeAttribute("prior")
+      } else {
+        const targetX = this._options.clickChangeColorX[x]
+        const targetXs = this._options.clickChangeColorX.target[targetX].linkX
+        targetXs.forEach(col =>  {
+          if (col === x) {
+            td.setAttribute("prior", "on")
+            Object.assign(td.style,this._options.clickChangeColorX.target[targetX].style);
+          } else {
+            const linkTd = this._getCell(col, y);
+            linkTd.removeAttribute('style')
+            linkTd.removeAttribute("prior")
+          }
+        })
       }
-    } else {
-      // console.log(td.firstChild.nodeName);
     }
+    if(!this._options.disEditable[0].includes(x) && !this._options.disEditable[1].includes(y) && this._options.deleteRow !== x) {
+      // Measure the current content
+      const tdSize = td.getBoundingClientRect();
+      const cellSize = td.firstChild.getBoundingClientRect();
 
-    const input = document.createElement("input");
-    const select = document.createElement("select");
+      if (td.firstChild.nodeName == "SELECT") {      
+        return;
+      } else {
+        this._option_pos = {};
+      }
 
-    let selectflag = true;
+      // remove the current content
+      if (td.firstChild.nodeName !== "SELECT"){
+        try{
+          td.removeChild(td.firstChild);
+        }catch(e){
+          return;
+        }
+      } else {
+        // console.log(td.firstChild.nodeName);
+      }
 
-    if (this._options.select.length > 0) {
-      //add the select
-      this._options.select.forEach((sel, index) => {
-        if (x === sel.rowIndex) {
-
-          //const select = document.createElement("select");
-          select.value = this._getVal(x, y);
-          td.appendChild(select);
-
-          // Make the new content fit the past size
+      const input = document.createElement("input");
+      const select = document.createElement("select");
+  
+      let selectflag = true;
+  
+      if (this._options.select.length > 0) {
+        //add the select
+        this._options.select.forEach((sel, index) => {
+          if (x === sel.rowIndex) {
+  
+            //const select = document.createElement("select");
+            select.value = this._getVal(x, y);
+            td.appendChild(select);
+  
+            // Make the new content fit the past size
+            Object.assign(td.style, {
+              width: tdSize.width - 2,
+              height: tdSize.height,
+            });
+  
+            Object.assign(select.style, {
+              width: tdSize.width - 2,
+              height: tdSize.height - 2,
+              outline: "none",
+              background: "transparent",
+            });
+            select.focus();
+            select.addEventListener("blur", this._stopEditing);
+            // select.addEventListener("keydown", this._blurIfEnter);
+            select.addEventListener("keydown", this._cancelKeyOnSelect);
+            select.addEventListener("change",this._selectChange);
+  
+            // add empty
+            // const empty = document.createElement("option");
+            // empty.text = "";
+            // empty.value = "";
+            // select.appendChild(empty);
+  
+            // add the option of select
+            this._options.select[index].selectableInfo.forEach(ele => {
+              const option = document.createElement("option");
+              if (ele.text == this._getVal(x, y)) {
+                option.selected = true;
+              }
+              option.text = ele.text;
+              option.value = ele.text;
+              select.appendChild(option);
+            });
+  
+            selectflag = false;
+            this._option_pos["x"] = x;
+            this._option_pos["y"] = y;
+          }
+        });
+        if (selectflag) {
+          input.type = "text";
+          input.value = this._getVal(x, y);
+          td.appendChild(input);
           Object.assign(td.style, {
             width: tdSize.width - 2,
             height: tdSize.height,
           });
-
-          Object.assign(select.style, {
-            width: tdSize.width - 2,
+          Object.assign(input.style, {
+            width: `${cellSize.width}px`,
             height: tdSize.height - 2,
             outline: "none",
             background: "transparent",
           });
-          select.focus();
-          select.addEventListener("blur", this._stopEditing);
-          // select.addEventListener("keydown", this._blurIfEnter);
-          select.addEventListener("keydown", this._cancelKeyOnSelect);
-          select.addEventListener("change",this._selectChange);
-
-          // add empty
-          // const empty = document.createElement("option");
-          // empty.text = "";
-          // empty.value = "";
-          // select.appendChild(empty);
-
-          // add the option of select
-          this._options.select[index].selectableInfo.forEach(ele => {
-            const option = document.createElement("option");
-            if (ele.text == this._getVal(x, y)) {
-              option.selected = true;
-            }
-            option.text = ele.text;
-            option.value = ele.text;
-            select.appendChild(option);
-          });
-
-          selectflag = false;
-          this._option_pos["x"] = x;
-          this._option_pos["y"] = y;
+          input.focus();
+          input.addEventListener("blur", this._stopEditing);
+          input.addEventListener("keydown", this._blurIfEnter);
         }
-      });
-      if (selectflag) {
+      } else { 
+        // add the input
+        //const input = document.createElement("input");
         input.type = "text";
         input.value = this._getVal(x, y);
         td.appendChild(input);
+    
+        // Make the new content fit the past size
         Object.assign(td.style, {
           width: tdSize.width - 2,
           height: tdSize.height,
         });
+    
         Object.assign(input.style, {
           width: `${cellSize.width}px`,
           height: tdSize.height - 2,
           outline: "none",
           background: "transparent",
         });
+    
         input.focus();
         input.addEventListener("blur", this._stopEditing);
         input.addEventListener("keydown", this._blurIfEnter);
       }
-    } else { 
-      // add the input
-      //const input = document.createElement("input");
-      input.type = "text";
-      input.value = this._getVal(x, y);
-      td.appendChild(input);
-  
-      // Make the new content fit the past size
-      Object.assign(td.style, {
-        width: tdSize.width - 2,
-        height: tdSize.height,
-      });
-  
-      Object.assign(input.style, {
-        width: `${cellSize.width}px`,
-        height: tdSize.height - 2,
-        outline: "none",
-        background: "transparent",
-      });
-  
-      input.focus();
-      input.addEventListener("blur", this._stopEditing);
-      input.addEventListener("keydown", this._blurIfEnter);
     }
   }
 
@@ -740,7 +832,9 @@ export default class Importabular {
     const input = td.firstChild;
     input.removeEventListener("blur", this._stopEditing);
     input.removeEventListener("keydown", this._blurIfEnter);
-    this._setVal(x, y, input.value);
+    if (!this._options.disEditable[0].includes(x) && !this._options.disEditable[1].includes(y)) {
+      this._setVal(x, y, input.value);
+    };
     this._onDataChanged();
     td.removeChild(input);
     this._editing = null;
@@ -763,7 +857,6 @@ export default class Importabular {
     }
   }
   _selectChange = (e) => {
-    // console.log(e);
     this._stopEditing();
   };
   _changeSelectedCellsStyle(callback) {
@@ -822,6 +915,7 @@ export default class Importabular {
     return classes;
   }
   _refreshDisplayedValue = ({ x, y }) => {
+    if(this._options.deleteRow === x) return;
     const div = this._getCell(x, y).firstChild;
     if (div.tagName === "DIV") {
       div.textContent = this._divContent(x, y);
@@ -855,6 +949,7 @@ export default class Importabular {
     this._data._clear();
     // paste data
     this._replaceDataWithArray(data);
+    this._addDelRow(data);
     // Refresh all cell, including outide of the
     // provided rect, as they've juste been emptied
     for (let x = 0; x < this._width; x++)
@@ -864,7 +959,9 @@ export default class Importabular {
   _replaceDataWithArray(data = [[]]) {
     data.forEach((line, y) => {
       line.forEach((val, x) => {
-        this._setVal(x, y, val);
+        if (this._options.deleteRow !== x) {
+          this._setVal(x, y, val);
+        }
       });
     });
   }

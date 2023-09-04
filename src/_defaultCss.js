@@ -48,6 +48,16 @@ td>div::selection {
     background: none;
 }
 
+.delete-btn {
+  background:#f5b2b2;
+  border: 1px solid #d32f18;
+  border-radius:5px;
+  height:20px;
+  color:#d32f18;
+  cursor: pointer;
+  width:100%;
+}
+
 .placeholder div{
   user-select:none;
   color:rgba(0,0,0,0.2);
