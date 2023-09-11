@@ -43,7 +43,8 @@ const sheet = new Importabular({
     target:{
       "red":{linkX:[1,2],style:{ background:"#FCBB76",color:"white"}},
       "blue":{linkX:[3,4,5],style:{ background:"#0072BC",color:"red"}}
-    }
+    },
+    noChgY:[1]
   },
   disEditable: [[1,2,3,4,5],[]],
   deleteRow:6

@@ -328,7 +328,7 @@ export default class Importabular {
         if (td) {
           if (td.firstChild) {return}
           td.appendChild(btn);
-          btn.innerHTML = "削除";
+          btn.innerHTML = "取消"; //todo to param
           btn.classList.add("delete-btn");
           btn.addEventListener('click', () => {
             this.setData(this.getDataPlus().filter((data,index) => index !== y))
@@ -673,7 +673,7 @@ export default class Importabular {
         const targetX = this._options.clickChangeColorX[x]
         const targetXs = this._options.clickChangeColorX.target[targetX].linkX
         targetXs.forEach(col =>  {
-          if (col === x) {
+          if (col === x && !this._options.clickChangeColorX.noChgY.includes(y) && this._getVal(x, y)) {
             td.setAttribute("prior", "on")
             Object.assign(td.style,this._options.clickChangeColorX.target[targetX].style);
           } else {

@@ -641,7 +641,7 @@
                   if (i) {
                     if (i.firstChild) return;
                     i.appendChild(t),
-                      (t.innerHTML = "削除"),
+                      (t.innerHTML = "取消"),
                       t.classList.add("delete-btn"),
                       t.addEventListener("click", () => {
                         this.setData(
@@ -748,7 +748,11 @@
                   const s = this._options.clickChangeColorX[t];
                   this._options.clickChangeColorX.target[s].linkX.forEach(
                     (n) => {
-                      if (n === t)
+                      if (
+                        n === t &&
+                        !this._options.clickChangeColorX.noChgY.includes(e) &&
+                        this._getVal(t, e)
+                      )
                         i.setAttribute("prior", "on"),
                           Object.assign(
                             i.style,
