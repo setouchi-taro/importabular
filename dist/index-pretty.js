@@ -303,7 +303,7 @@
                             t
                           )),
                           (this._selecting = !0),
-                          this._startEditing(this._focus));
+                          this._startEditing(this._focus, !0));
                       });
                   }
                 }),
@@ -321,14 +321,14 @@
                           this._endSelection(),
                           (this._options.clickChangeColorX &&
                             this._options.clickChangeColorX[this._focus.x]) ||
-                            (this._startEditing(this._focus),
+                            (this._startEditing(this._focus, !0),
                             this._lastMouseUp &&
                               this._lastMouseUp > Date.now() - 300 &&
                               this._lastMouseUpTarget.x ===
                                 this._selectionEnd.x &&
                               this._lastMouseUpTarget.y ===
                                 this._selectionEnd.y &&
-                              this._startEditing(this._selectionEnd)),
+                              this._startEditing(this._selectionEnd, !0)),
                           (this._lastMouseUp = Date.now()),
                           (this._lastMouseUpTarget = this._selectionEnd);
                       }));
@@ -735,28 +735,29 @@
             _endSelection() {
               (this._selecting = !1), (this.tbody.style.userSelect = "");
             }
-            _startEditing({ x: t, y: e }) {
+            _startEditing({ x: t, y: e }, i = !1) {
               this._editing = { x: t, y: e };
-              const i = this._getCell(t, e);
+              const s = this._getCell(t, e);
               if (
                 this._options.clickChangeColorX &&
-                this._options.clickChangeColorX[t]
+                this._options.clickChangeColorX[t] &&
+                i
               )
-                if (i.hasAttribute("style") && "" !== i.getAttribute("style"))
-                  i.removeAttribute("style"), i.removeAttribute("prior");
+                if (s.hasAttribute("style") && "" !== s.getAttribute("style"))
+                  s.removeAttribute("style"), s.removeAttribute("prior");
                 else {
-                  const s = this._options.clickChangeColorX[t];
-                  this._options.clickChangeColorX.target[s].linkX.forEach(
+                  const i = this._options.clickChangeColorX[t];
+                  this._options.clickChangeColorX.target[i].linkX.forEach(
                     (n) => {
                       if (
                         n === t &&
                         !this._options.clickChangeColorX.noChgY.includes(e) &&
                         this._getVal(t, e)
                       )
-                        i.setAttribute("prior", "on"),
+                        s.setAttribute("prior", "on"),
                           Object.assign(
-                            i.style,
-                            this._options.clickChangeColorX.target[s].style
+                            s.style,
+                            this._options.clickChangeColorX.target[i].style
                           );
                       else {
                         const t = this._getCell(n, e);
@@ -770,14 +771,14 @@
                 !this._options.disEditable[1].includes(e) &&
                 this._options.deleteRow !== t
               ) {
-                const s = i.getBoundingClientRect(),
-                  n = i.firstChild.getBoundingClientRect();
-                if ("SELECT" == i.firstChild.nodeName) return;
+                const i = s.getBoundingClientRect(),
+                  n = s.firstChild.getBoundingClientRect();
+                if ("SELECT" == s.firstChild.nodeName) return;
                 if (
-                  ((this._option_pos = {}), "SELECT" !== i.firstChild.nodeName)
+                  ((this._option_pos = {}), "SELECT" !== s.firstChild.nodeName)
                 )
                   try {
-                    i.removeChild(i.firstChild);
+                    s.removeChild(s.firstChild);
                   } catch (t) {
                     return;
                   }
@@ -788,14 +789,14 @@
                   ? (this._options.select.forEach((n, o) => {
                       t === n.rowIndex &&
                         ((h.value = this._getVal(t, e)),
-                        i.appendChild(h),
-                        Object.assign(i.style, {
-                          width: s.width - 2,
-                          height: s.height,
+                        s.appendChild(h),
+                        Object.assign(s.style, {
+                          width: i.width - 2,
+                          height: i.height,
                         }),
                         Object.assign(h.style, {
-                          width: s.width - 2,
-                          height: s.height - 2,
+                          width: i.width - 2,
+                          height: i.height - 2,
                           outline: "none",
                           background: "transparent",
                         }),
@@ -817,14 +818,14 @@
                     l &&
                       ((o.type = "text"),
                       (o.value = this._getVal(t, e)),
-                      i.appendChild(o),
-                      Object.assign(i.style, {
-                        width: s.width - 2,
-                        height: s.height,
+                      s.appendChild(o),
+                      Object.assign(s.style, {
+                        width: i.width - 2,
+                        height: i.height,
                       }),
                       Object.assign(o.style, {
                         width: `${n.width}px`,
-                        height: s.height - 2,
+                        height: i.height - 2,
                         outline: "none",
                         background: "transparent",
                       }),
@@ -833,14 +834,14 @@
                       o.addEventListener("keydown", this._blurIfEnter)))
                   : ((o.type = "text"),
                     (o.value = this._getVal(t, e)),
-                    i.appendChild(o),
-                    Object.assign(i.style, {
-                      width: s.width - 2,
-                      height: s.height,
+                    s.appendChild(o),
+                    Object.assign(s.style, {
+                      width: i.width - 2,
+                      height: i.height,
                     }),
                     Object.assign(o.style, {
                       width: `${n.width}px`,
-                      height: s.height - 2,
+                      height: i.height - 2,
                       outline: "none",
                       background: "transparent",
                     }),

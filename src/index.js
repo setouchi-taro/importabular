@@ -591,7 +591,7 @@ export default class Importabular {
         e
       );
       this._selecting = true;
-      this._startEditing(this._focus);  
+      this._startEditing(this._focus,true);  
     });
   };
   mouseenter = (e) => {
@@ -619,14 +619,14 @@ export default class Importabular {
         
         // In a multi-byte environment(Japanese etc),want to enter edit mode after click
         if(!this._options.clickChangeColorX || !this._options.clickChangeColorX[this._focus.x]) {
-          this._startEditing(this._focus);
+          this._startEditing(this._focus,true);
           if (
             this._lastMouseUp &&
             this._lastMouseUp > Date.now() - 300 &&
             this._lastMouseUpTarget.x === this._selectionEnd.x &&
             this._lastMouseUpTarget.y === this._selectionEnd.y
           ) {
-            this._startEditing(this._selectionEnd);
+            this._startEditing(this._selectionEnd,true);
           }
         }
         this._lastMouseUp = Date.now();
@@ -660,12 +660,12 @@ export default class Importabular {
     if (!this.mobile) return;
     this.moved = true;
   };
-  _startEditing({ x, y }) {
+  _startEditing({ x, y },mouseupFlag= false) {
     this._editing = { x, y };
     const td = this._getCell(x, y);
     
     //test
-    if(this._options.clickChangeColorX && this._options.clickChangeColorX[x]) {
+    if(this._options.clickChangeColorX && this._options.clickChangeColorX[x] && mouseupFlag) {
       if(td.hasAttribute('style') && td.getAttribute('style') !== "") {
         td.removeAttribute('style')
         td.removeAttribute("prior")
