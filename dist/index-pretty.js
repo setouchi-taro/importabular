@@ -11,7 +11,7 @@
     "use strict";
     var t = {
         103: (t, e, i) => {
-          i.d(e, { default: () => r });
+          i.d(e, { default: () => h });
           class s {
             constructor() {
               var t, e;
@@ -55,22 +55,22 @@
               return i;
             }
           }
-          function n(t, e, i, s, n, o, h) {
+          function n(t, e, i, s, n, o, l) {
             if ((t += i) < s) {
               if (n === 1 / 0) return { x: s, y: e };
               if (((t = n), --e < o)) {
-                if (h === 1 / 0) return { x: s, y: o };
-                e = h;
+                if (l === 1 / 0) return { x: s, y: o };
+                e = l;
               }
             }
             return (
-              t > n && ((t = s), ++e > h && ((e = o), (t = s))), { x: t, y: e }
+              t > n && ((t = s), ++e > l && ((e = o), (t = s))), { x: t, y: e }
             );
           }
           function o(t) {
             return t.split('"').length - 1;
           }
-          function h(t, e, i) {
+          function l(t, e, i) {
             return (
               e in t
                 ? Object.defineProperty(t, e, {
@@ -83,7 +83,7 @@
               t
             );
           }
-          const l = [
+          const r = [
             "mousedown",
             "mouseenter",
             "mouseup",
@@ -96,12 +96,12 @@
             "cut",
             "copy",
           ];
-          class r {
+          class h {
             constructor(t) {
-              h(this, "_width", 1),
-                h(this, "_height", 1),
-                h(this, "_data", new s()),
-                h(this, "paste", (t) => {
+              l(this, "_width", 1),
+                l(this, "_height", 1),
+                l(this, "_data", new s()),
+                l(this, "paste", (t) => {
                   if (this._editing) return;
                   t.preventDefault();
                   const e = (function (t) {
@@ -109,9 +109,9 @@
                         i,
                         s,
                         n,
-                        h,
                         l,
                         r,
+                        h,
                         a = [],
                         d = 0;
                       for (
@@ -124,30 +124,30 @@
                         e += 1
                       ) {
                         for (
-                          s[e] = s[e].split("\t"), n = 0, h = s[e].length;
-                          n < h;
+                          s[e] = s[e].split("\t"), n = 0, l = s[e].length;
+                          n < l;
                           n += 1
                         )
                           a[d] || (a[d] = []),
-                            l && 0 === n
-                              ? ((r = a[d].length - 1),
-                                (a[d][r] = a[d][r] + "\n" + s[e][0]),
-                                l &&
+                            r && 0 === n
+                              ? ((h = a[d].length - 1),
+                                (a[d][h] = a[d][h] + "\n" + s[e][0]),
+                                r &&
                                   1 & o(s[e][0]) &&
-                                  ((l = !1),
-                                  (a[d][r] = a[d][r]
-                                    .substring(0, a[d][r].length - 1)
+                                  ((r = !1),
+                                  (a[d][h] = a[d][h]
+                                    .substring(0, a[d][h].length - 1)
                                     .replace(/""/g, '"'))))
-                              : n === h - 1 &&
+                              : n === l - 1 &&
                                 0 === s[e][n].indexOf('"') &&
                                 1 & o(s[e][n])
                               ? (a[d].push(
                                   s[e][n].substring(1).replace(/""/g, '"')
                                 ),
-                                (l = !0))
+                                (r = !0))
                               : (a[d].push(s[e][n].replace(/""/g, '"')),
-                                (l = !1));
-                        l || (d += 1);
+                                (r = !1));
+                        r || (d += 1);
                       }
                       return a;
                     })(
@@ -178,7 +178,7 @@
                       this._onDataChanged();
                   });
                 }),
-                h(this, "copy", (t) => {
+                l(this, "copy", (t) => {
                   if (this._editing) return;
                   const e = this._getSelectionAsArray();
                   e &&
@@ -191,26 +191,26 @@
                           s,
                           n,
                           o,
-                          h = "";
+                          l = "";
                         for (e = 0, i = t.length; e < i; e += 1) {
                           for (s = 0, n = t[e].length; s < n; s += 1)
-                            s > 0 && (h += "\t"),
+                            s > 0 && (l += "\t"),
                               "string" == typeof (o = t[e][s])
                                 ? o.indexOf("\n") > -1
-                                  ? (h += '"' + o.replace(/"/g, '""') + '"')
-                                  : (h += o)
-                                : (h += null == o ? "" : o);
-                          h += "\n";
+                                  ? (l += '"' + o.replace(/"/g, '""') + '"')
+                                  : (l += o)
+                                : (l += null == o ? "" : o);
+                          l += "\n";
                         }
-                        return h;
+                        return l;
                       })(e)
                     ));
                 }),
-                h(this, "cut", (t) => {
+                l(this, "cut", (t) => {
                   this._editing ||
                     (this.copy(t), this._setAllSelectedCellsTo(""));
                 }),
-                h(this, "keydown", (t) => {
+                l(this, "keydown", (t) => {
                   if (t.ctrlKey)
                     this._editing &&
                       (t.preventDefault(),
@@ -268,14 +268,14 @@
                         (t.preventDefault(), this._stopEditing());
                   }
                 }),
-                h(this, "_selecting", !1),
-                h(this, "_selectionStart", null),
-                h(this, "_selectionEnd", null),
-                h(this, "_selection", { rx: [0, 0], ry: [0, 0] }),
-                h(this, "_editing", null),
-                h(this, "_focus", null),
-                h(this, "_option_pos", {}),
-                h(this, "mousedown", (t) => {
+                l(this, "_selecting", !1),
+                l(this, "_selectionStart", null),
+                l(this, "_selectionEnd", null),
+                l(this, "_selection", { rx: [0, 0], ry: [0, 0] }),
+                l(this, "_editing", null),
+                l(this, "_focus", null),
+                l(this, "_option_pos", {}),
+                l(this, "mousedown", (t) => {
                   if (!this.mobile) {
                     if (
                       3 === t.which &&
@@ -306,12 +306,12 @@
                       });
                   }
                 }),
-                h(this, "mouseenter", (t) => {
+                l(this, "mouseenter", (t) => {
                   this.mobile;
                 }),
-                h(this, "_lastMouseUp", null),
-                h(this, "_lastMouseUpTarget", null),
-                h(this, "mouseup", (t) => {
+                l(this, "_lastMouseUp", null),
+                l(this, "_lastMouseUpTarget", null),
+                l(this, "mouseup", (t) => {
                   this.mobile ||
                     (3 !== t.which &&
                       this._selecting &&
@@ -330,15 +330,15 @@
                           (this._lastMouseUpTarget = this._selectionEnd);
                       }));
                 }),
-                h(this, "mouseleave", (t) => {
+                l(this, "mouseleave", (t) => {
                   t.target === this.tbody &&
                     this._selecting &&
                     this._endSelection();
                 }),
-                h(this, "touchstart", (t) => {
+                l(this, "touchstart", (t) => {
                   this._editing || ((this.mobile = !0), (this.moved = !1));
                 }),
-                h(this, "touchend", (t) => {
+                l(this, "touchend", (t) => {
                   this.mobile &&
                     (this._editing ||
                       this.moved ||
@@ -349,10 +349,10 @@
                       }),
                       this._startEditing(this._focus)));
                 }),
-                h(this, "touchmove", (t) => {
+                l(this, "touchmove", (t) => {
                   this.mobile && (this.moved = !0);
                 }),
-                h(this, "_stopEditing", () => {
+                l(this, "_stopEditing", () => {
                   if (!this._editing) return;
                   this._option_pos && (this._option_pos = {});
                   const { x: t, y: e } = this._editing;
@@ -368,24 +368,24 @@
                     (this._editing = null),
                     this._renderTDContent(i, t, e);
                 }),
-                h(this, "_blurIfEnter", (t) => {
+                l(this, "_blurIfEnter", (t) => {
                   13 === t.keyCode && (this._stopEditing(), t.preventDefault());
                 }),
-                h(this, "_cancelKeyOnSelect", (t) => {
+                l(this, "_cancelKeyOnSelect", (t) => {
                   const e = t.keyCode;
                   (13 !== e && 33 !== e && 34 != e && 36 !== e && 35 !== e) ||
                     (this._stopEditing(), t.preventDefault());
                 }),
-                h(this, "_selectChange", (t) => {
+                l(this, "_selectChange", (t) => {
                   this._stopEditing();
                 }),
-                h(this, "_restyle", ({ x: t, y: e }) => {
+                l(this, "_restyle", ({ x: t, y: e }) => {
                   const i = this._getCell(t, e);
                   i.className = this._classNames(t, e);
                   const s = a(this.checkResults.titles, t, e);
                   s ? i.setAttribute("title", s) : i.removeAttribute("title");
                 }),
-                h(this, "_refreshDisplayedValue", ({ x: t, y: e }) => {
+                l(this, "_refreshDisplayedValue", ({ x: t, y: e }) => {
                   const i = this._getCell(t, e).firstChild;
                   i &&
                     "DIV" === i.tagName &&
@@ -412,9 +412,9 @@
               minRows: s = 1,
               maxRows: n = 1 / 0,
               css: o = "",
-              width: h = "100%",
-              height: l = "80vh",
-              columns: r,
+              width: l = "100%",
+              height: r = "80vh",
+              columns: h,
               checks: a,
               select: d = [],
               bond: c = [],
@@ -423,7 +423,7 @@
               btnRowDel: g = null,
             }) {
               if (
-                ((this.columns = r),
+                ((this.columns = h),
                 (this.checks = a || (() => ({}))),
                 this._runChecks(t),
                 !e)
@@ -446,8 +446,8 @@
                   btnRowDel: g,
                 }),
                 (this._iframeStyle = {
-                  width: h,
-                  height: l,
+                  width: l,
+                  height: r,
                   border: "none",
                   position: "absolute",
                   background: "transparent",
@@ -511,10 +511,10 @@
                 s = document.createElement("tbody"),
                 n = document.createElement("THEAD"),
                 o = document.createElement("TR"),
-                h = document.createElement("TR"),
-                r = [];
+                l = document.createElement("TR"),
+                h = [];
               this._options.bond.length > 0
-                ? (n.appendChild(h),
+                ? (n.appendChild(l),
                   n.appendChild(o),
                   this.columns.forEach((t, e) => {
                     const i = document.createElement("TH"),
@@ -526,8 +526,8 @@
                           ((s.innerHTML = o.label),
                           o.label && i.appendChild(s),
                           i.setAttribute("colspan", o.rowSize),
-                          h.appendChild(i)),
-                          r.push(t),
+                          l.appendChild(i)),
+                          h.push(t),
                           (n = !0);
                         break;
                       }
@@ -535,10 +535,10 @@
                       ((s.innerHTML = t.label),
                       t.title && i.setAttribute("title", t.title),
                       i.appendChild(s),
-                      h.appendChild(i),
+                      l.appendChild(i),
                       i.setAttribute("rowspan", "2"));
                   }),
-                  r.forEach((t) => {
+                  h.forEach((t) => {
                     const e = document.createElement("TH"),
                       i = document.createElement("div");
                     (i.innerHTML = t.label),
@@ -551,14 +551,14 @@
                   e.body.appendChild(i),
                   (this.tbody = s),
                   (this.table = i))
-                : (n.appendChild(h),
+                : (n.appendChild(l),
                   this.columns.forEach((t) => {
                     const e = document.createElement("TH"),
                       i = document.createElement("div");
                     (i.innerHTML = t.label),
                       t.title && e.setAttribute("title", t.title),
                       e.appendChild(i),
-                      h.appendChild(e);
+                      l.appendChild(e);
                   })),
                 i.appendChild(n),
                 i.appendChild(s),
@@ -570,11 +570,11 @@
                 s.appendChild(e);
                 for (let i = 0; i < this._width; i++) this._addCell(e, i, t);
               }
-              l.forEach((t) => e.addEventListener(t, this[t], !0));
+              r.forEach((t) => e.addEventListener(t, this[t], !0));
             }
             destroy() {
               this._destroyEditing(),
-                l.forEach((t) => this.cwd.removeEventListener(t, this[t], !0)),
+                r.forEach((t) => this.cwd.removeEventListener(t, this[t], !0)),
                 this.iframe.parentElement.removeChild(this.iframe);
             }
             _addCell(t, e, i) {
@@ -644,27 +644,27 @@
             _tabCursorInSelection(t, e = 1) {
               let { x: i, y: s } = this._focus || { x: 0, y: 0 };
               const o = this._selectionSize(),
-                { rx: h, ry: l } =
+                { rx: l, ry: r } =
                   o > 1
                     ? this._selection
                     : {
                         rx: [0, this.columns.length],
                         ry: [0, this._options.maxRows],
                       };
-              let r;
-              if (t) r = n(i, s, e, h[0], h[1] - 1, l[0], l[1] - 1);
+              let h;
+              if (t) h = n(i, s, e, l[0], l[1] - 1, r[0], r[1] - 1);
               else {
-                const t = n(s, i, e, l[0], l[1] - 1, h[0], h[1] - 1);
-                r = { x: t.y, y: t.x };
+                const t = n(s, i, e, r[0], r[1] - 1, l[0], l[1] - 1);
+                h = { x: t.y, y: t.x };
               }
-              this._fitBounds(r) &&
+              this._fitBounds(h) &&
                 (this._stopEditing(),
-                this._incrementToFit(r),
+                this._incrementToFit(h),
                 this._changeSelectedCellsStyle(() => {
-                  (this._focus = r),
-                    o <= 1 && (this._selectionStart = this._selectionEnd = r);
+                  (this._focus = h),
+                    o <= 1 && (this._selectionStart = this._selectionEnd = h);
                 }),
-                this._scrollIntoView(r));
+                this._scrollIntoView(h));
             }
             _scrollIntoView({ x: t, y: e }) {
               this._getCell(t, e).scrollIntoView({
@@ -692,72 +692,72 @@
                 } catch (t) {
                   return;
                 }
-              const h = document.createElement("input"),
-                l = document.createElement("select");
-              let r = !0;
+              const l = document.createElement("input"),
+                r = document.createElement("select");
+              let h = !0;
               this._options.select.length > 0
                 ? (this._options.select.forEach((i, o) => {
                     t === i.rowIndex &&
-                      ((l.value = this._getVal(t, e)),
-                      s.appendChild(l),
+                      ((r.value = this._getVal(t, e)),
+                      s.appendChild(r),
                       Object.assign(s.style, {
                         width: n.width - 2,
                         height: n.height,
                       }),
-                      Object.assign(l.style, {
+                      Object.assign(r.style, {
                         width: n.width - 2,
                         height: n.height - 2,
                         outline: "none",
                         background: "transparent",
                       }),
-                      l.focus(),
-                      l.addEventListener("blur", this._stopEditing),
-                      l.addEventListener("keydown", this._cancelKeyOnSelect),
-                      l.addEventListener("change", this._selectChange),
+                      r.focus(),
+                      r.addEventListener("blur", this._stopEditing),
+                      r.addEventListener("keydown", this._cancelKeyOnSelect),
+                      r.addEventListener("change", this._selectChange),
                       this._options.select[o].selectableInfo.forEach((i) => {
                         const s = document.createElement("option");
                         i.text == this._getVal(t, e) && (s.selected = !0),
                           (s.text = i.text),
                           (s.value = i.text),
-                          l.appendChild(s);
+                          r.appendChild(s);
                       }),
-                      (r = !1),
+                      (h = !1),
                       (this._option_pos.x = t),
                       (this._option_pos.y = e));
                   }),
-                  r &&
-                    ((h.type = "text"),
-                    (h.value = this._getVal(t, e)),
-                    s.appendChild(h),
+                  h &&
+                    ((l.type = "text"),
+                    (l.value = this._getVal(t, e)),
+                    s.appendChild(l),
                     Object.assign(s.style, {
                       width: n.width - 2,
                       height: n.height,
                     }),
-                    Object.assign(h.style, {
+                    Object.assign(l.style, {
                       width: `${o.width}px`,
                       height: n.height - 2,
                       outline: "none",
                       background: "transparent",
                     }),
-                    h.focus(),
-                    h.addEventListener("blur", this._stopEditing),
-                    h.addEventListener("keydown", this._blurIfEnter)))
-                : ((h.type = "text"),
-                  (h.value = this._getVal(t, e)),
-                  s.appendChild(h),
+                    l.focus(),
+                    l.addEventListener("blur", this._stopEditing),
+                    l.addEventListener("keydown", this._blurIfEnter)))
+                : ((l.type = "text"),
+                  (l.value = this._getVal(t, e)),
+                  s.appendChild(l),
                   Object.assign(s.style, {
                     width: n.width - 2,
                     height: n.height,
                   }),
-                  Object.assign(h.style, {
+                  Object.assign(l.style, {
                     width: `${o.width}px`,
                     height: n.height - 2,
                     outline: "none",
                     background: "transparent",
                   }),
-                  h.focus(),
-                  h.addEventListener("blur", this._stopEditing),
-                  h.addEventListener("keydown", this._blurIfEnter));
+                  l.focus(),
+                  l.addEventListener("blur", this._stopEditing),
+                  l.addEventListener("keydown", this._blurIfEnter));
             }
             _destroyEditing() {
               if (this._editing) {
@@ -924,8 +924,10 @@
                       .forEach((i) => {
                         if (i !== t) {
                           const t = this._getCell(i, e);
-                          t.removeAttribute("style"),
-                            t.removeAttribute("prior");
+                          t.hasAttribute("style") &&
+                            "" !== t.getAttribute("style") &&
+                            (t.removeAttribute("style"),
+                            t.removeAttribute("prior"));
                         }
                       }));
             }

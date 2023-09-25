@@ -942,8 +942,10 @@ export default class Importabular {
         linkX.forEach(idx =>  {
           if (idx !== x) {
             const linkTd = this._getCell(idx, y);
-            linkTd.removeAttribute("style");
-            linkTd.removeAttribute("prior");
+            if(linkTd.hasAttribute("style") && linkTd.getAttribute("style") !== "") {
+              linkTd.removeAttribute("style");
+              linkTd.removeAttribute("prior");
+            }
           }
         });
       }
