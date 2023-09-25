@@ -882,6 +882,15 @@ export default class Importabular {
       for (let y = 0; y < this._height; y++)
         this._refreshDisplayedValue({ x, y });
   }
+  setColor(data) {
+    data.forEach((row,y) => {
+      row.forEach((col,x) => {
+        if (!this._columStyleChgFlag(x,true)) return;
+        const td = this._getCell(x, y);
+        if (data[y][x] === 1) this._chgStyle(x, y, td);
+      });
+    })
+  }
   _replaceDataWithArray(data = [[]]) {
     data.forEach((line, y) => {
       line.forEach((val, x) => {
