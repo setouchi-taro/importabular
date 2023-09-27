@@ -754,7 +754,10 @@ export default class Importabular {
     }
     const { x, y } = this._editing;
 
-    if(this._noEditFlag(x, y) || this._btnRowDelFlag(x)) return;
+    if(this._noEditFlag(x, y) || this._btnRowDelFlag(x)) {
+      this._editing = null;
+      return;
+    }
     const td = this._getCell(x, y);
     td.style.width = "";
     td.style.height = "";
