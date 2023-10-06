@@ -65,8 +65,7 @@ export default class Importabular {
     select = [], //add selectable element
     bond = [], //add table header bond
     noEdit = [[],[]], //add no editable colums and rows
-    styleChg = null, //add changeable style by clicking (current situation colum only)
-    btnRowDel = null //add button removeable row (need any data to target rows)
+    styleChg = null //add changeable style by clicking (current situation colum only)
   }) {
     this.columns = columns;
     this.checks = checks || (() => ({}));  
@@ -86,8 +85,7 @@ export default class Importabular {
       select,
       bond,
       noEdit,
-      styleChg,
-      btnRowDel
+      styleChg
     };
     this._iframeStyle = {
       width,
@@ -135,7 +133,6 @@ export default class Importabular {
   }
   /** @private Create a div with the cell content and correct style */
   _renderTDContent(td, x, y) {
-    if (this._btnRowDelFlag(x)) return;
 
     //なんか知らんが差分が出る
     var div = document.createElement("div");
@@ -609,7 +606,7 @@ export default class Importabular {
     const td = this._getCell(x, y);
 
     if (this._columStyleChgFlag(x,mouseupFlag)) this._chgStyle(x, y, td);
-    if (this._noEditFlag(x, y) || this._btnRowDelFlag(x)) return;
+    if (this._noEditFlag(x, y)) return;
 
     // Measure the current content
     const tdSize = td.getBoundingClientRect();
@@ -754,7 +751,7 @@ export default class Importabular {
     }
     const { x, y } = this._editing;
 
-    if(this._noEditFlag(x, y) || this._btnRowDelFlag(x)) {
+    if(this._noEditFlag(x, y)) {
       this._editing = null;
       return;
     }
@@ -897,11 +894,7 @@ export default class Importabular {
   _replaceDataWithArray(data = [[]]) {
     data.forEach((line, y) => {
       line.forEach((val, x) => {
-        if (this._btnRowDelFlag(x))  {
-          this._setDelFlag(x, y, line);
-        } else {
-          this._setVal(x, y, val);
-        }
+        this._setVal(x, y, val);
       });
     });
   }
@@ -910,13 +903,6 @@ export default class Importabular {
     this._data._setVal(x, y, val);
     this._incrementToFit({ x: x + 1, y: y + 1 });
     this._refreshDisplayedValue({ x, y });
-  }
-  _setDelFlag(x, y, rows) {
-    if (!this._fitBounds({ x, y })) return;
-    const val = rows.find(data => data) ? "1" : ""
-    this._data._setVal(x, y, val);
-    this._incrementToFit({ x: x + 1, y: y + 1 });
-    this._createDeleteBtnContent(x, y, val);
   }
   _getVal(x, y) {
     return this._data._getVal(x, y);
@@ -929,9 +915,6 @@ export default class Importabular {
   }
   _columStyleChgFlag(x,mouseupFlag) {
     return this._options.styleChg && this._options.styleChg.colum && this._options.styleChg.colum[x] && mouseupFlag;
-  }
-  _btnRowDelFlag(x) {
-    return this._options.btnRowDel && this._options.btnRowDel.index === +x;
   }
   _chgStyle(x, y, td) {
     if(td.hasAttribute("style") && td.getAttribute("style") !== "") {
@@ -968,21 +951,6 @@ export default class Importabular {
       }
     }
     return result;
-  }
-  _createDeleteBtnContent(x, y, val) {
-    const td = this._getCell(x, y) 
-    if (val === "1") {
-      if (td.firstChild) return;
-      const btn = document.createElement("button");
-      td.appendChild(btn);
-      btn.innerHTML = this._options.btnRowDel.name;
-      btn.addEventListener('click', () => {
-        this.setData(this.getData().filter((data,index) => index !== y))
-      });
-    } else {
-      if (!td.firstChild) return;
-      td.removeChild(td.firstChild);
-    }
   }
 }
 function _fromArr(arr, x, y) {

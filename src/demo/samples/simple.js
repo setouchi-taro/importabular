@@ -33,10 +33,5 @@ const sheet = new Importabular({
       1:{background:"red"},
       link:[[0,1]]
     }
-  },
-  btnRowDel : {
-    index:3,
-    name:"remove",
-    class:"delete-btn"
   }
 });
