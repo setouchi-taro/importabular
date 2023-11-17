@@ -159,7 +159,16 @@
                     n = { x: i[0], y: s[0] };
                   for (let t = 0; t < e.length; t++)
                     for (let i = 0; i < e[0].length; i++)
-                      this._setVal(n.x + i, n.y + t, e[t][i]);
+                      this._noEditFlag(n.x + i, n.y + t) ||
+                        (i === e[0].length - 1 &&
+                          /\r?\n|\r/.test(e[t][i]) &&
+                          '"' === e[t][i].slice(-1) &&
+                          (e[t][i] = e[t][i].slice(0, -1)),
+                        this._setVal(
+                          n.x + i,
+                          n.y + t,
+                          e[t][i].replace(/\r?\n|\r/g, "")
+                        ));
                   this._changeSelectedCellsStyle(() => {
                     (this._selectionStart = n),
                       (this._selectionEnd = {
@@ -309,14 +318,14 @@
                       this._changeSelectedCellsStyle(() => {
                         (this._selectionEnd = this._getCoords(t)),
                           this._endSelection(),
-                          this._startEditing(this._focus),
+                          this._startEditing(this._focus, !0),
                           this._lastMouseUp &&
                             this._lastMouseUp > Date.now() - 300 &&
                             this._lastMouseUpTarget.x ===
                               this._selectionEnd.x &&
                             this._lastMouseUpTarget.y ===
                               this._selectionEnd.y &&
-                            this._startEditing(this._selectionEnd),
+                            this._startEditing(this._selectionEnd, !0),
                           (this._lastMouseUp = Date.now()),
                           (this._lastMouseUpTarget = this._selectionEnd);
                       }));
@@ -346,8 +355,10 @@
                 h(this, "_stopEditing", () => {
                   if (!this._editing) return;
                   this._option_pos && (this._option_pos = {});
-                  const { x: t, y: e } = this._editing,
-                    i = this._getCell(t, e);
+                  const { x: t, y: e } = this._editing;
+                  if (this._noEditFlag(t, e))
+                    return void (this._editing = null);
+                  const i = this._getCell(t, e);
                   (i.style.width = ""), (i.style.height = "");
                   const s = i.firstChild;
                   s.removeEventListener("blur", this._stopEditing),
@@ -377,7 +388,8 @@
                 }),
                 h(this, "_refreshDisplayedValue", ({ x: t, y: e }) => {
                   const i = this._getCell(t, e).firstChild;
-                  "DIV" === i.tagName &&
+                  i &&
+                    "DIV" === i.tagName &&
                     (i.textContent = this._divContent(t, e)),
                     this._restyle({ x: t, y: e });
                 }),
@@ -407,6 +419,8 @@
               checks: a,
               select: d = [],
               bond: c = [],
+              noEdit: _ = [[], []],
+              styleChg: u = null,
             }) {
               if (
                 ((this.columns = l),
@@ -427,6 +441,8 @@
                     o,
                   select: d,
                   bond: c,
+                  noEdit: _,
+                  styleChg: u,
                 }),
                 (this._iframeStyle = {
                   width: h,
@@ -452,6 +468,9 @@
             }
             getData() {
               return this._data._toArr(this._width, this._height);
+            }
+            getColor() {
+              return this._toArrColorFlag(this._width, this._height);
             }
             _onDataChanged() {
               const t = this.getData();
@@ -598,9 +617,9 @@
               return n;
             }
             _setAllSelectedCellsTo(t) {
-              this._forSelectionCoord(this._selection, ({ x: e, y: i }) =>
-                this._setVal(e, i, t)
-              ),
+              this._forSelectionCoord(this._selection, ({ x: e, y: i }) => {
+                this._noEditFlag(e, i) || this._setVal(e, i, t);
+              }),
                 this._onDataChanged(),
                 this._forSelectionCoord(
                   this._selection,
@@ -654,84 +673,89 @@
             _endSelection() {
               (this._selecting = !1), (this.tbody.style.userSelect = "");
             }
-            _startEditing({ x: t, y: e }) {
+            _startEditing({ x: t, y: e }, i = !1) {
               this._editing = { x: t, y: e };
-              const i = this._getCell(t, e),
-                s = i.getBoundingClientRect(),
-                n = i.firstChild.getBoundingClientRect();
-              if ("SELECT" == i.firstChild.nodeName) return;
-              if (((this._option_pos = {}), "SELECT" !== i.firstChild.nodeName))
+              const s = this._getCell(t, e);
+              if (
+                (this._columStyleChgFlag(t, i) && this._chgStyle(t, e, s),
+                this._noEditFlag(t, e))
+              )
+                return;
+              const n = s.getBoundingClientRect(),
+                o = s.firstChild.getBoundingClientRect();
+              if ("SELECT" == s.firstChild.nodeName) return;
+              if (((this._option_pos = {}), "SELECT" !== s.firstChild.nodeName))
                 try {
-                  i.removeChild(i.firstChild);
+                  s.removeChild(s.firstChild);
                 } catch (t) {
                   return;
                 }
-              const o = document.createElement("input"),
-                h = document.createElement("select");
-              let r = !0;
+              const h = document.createElement("input"),
+                r = document.createElement("select");
+              let l = !0;
               this._options.select.length > 0
-                ? (this._options.select.forEach((n, o) => {
-                    t === n.rowIndex &&
-                      ((h.value = this._getVal(t, e)),
-                      i.appendChild(h),
-                      Object.assign(i.style, {
-                        width: s.width - 2,
-                        height: s.height,
+                ? (this._options.select.forEach((i, o) => {
+                    t === i.rowIndex &&
+                      ((r.value = this._getVal(t, e)),
+                      s.appendChild(r),
+                      Object.assign(s.style, {
+                        width: n.width - 2,
+                        height: n.height,
                       }),
-                      Object.assign(h.style, {
-                        width: s.width - 2,
-                        height: s.height - 2,
+                      Object.assign(r.style, {
+                        width: n.width - 2,
+                        height: n.height - 2,
                         outline: "none",
                         background: "transparent",
                       }),
-                      h.focus(),
-                      h.addEventListener("blur", this._stopEditing),
-                      h.addEventListener("keydown", this._cancelKeyOnSelect),
-                      h.addEventListener("change", this._selectChange),
+                      r.focus(),
+                      r.addEventListener("blur", this._stopEditing),
+                      r.addEventListener("keydown", this._cancelKeyOnSelect),
+                      r.addEventListener("change", this._selectChange),
                       this._options.select[o].selectableInfo.forEach((i) => {
                         const s = document.createElement("option");
                         i.text == this._getVal(t, e) && (s.selected = !0),
                           (s.text = i.text),
                           (s.value = i.text),
-                          h.appendChild(s);
+                          r.appendChild(s);
                       }),
-                      (r = !1),
+                      (l = !1),
                       (this._option_pos.x = t),
                       (this._option_pos.y = e));
                   }),
-                  r &&
-                    ((o.type = "text"),
-                    (o.value = this._getVal(t, e)),
-                    i.appendChild(o),
-                    Object.assign(i.style, {
-                      width: s.width - 2,
-                      height: s.height,
+                  l &&
+                    ((h.type = "text"),
+                    (h.value = this._getVal(t, e)),
+                    s.appendChild(h),
+                    Object.assign(s.style, {
+                      width: n.width - 2,
+                      height: n.height,
                     }),
-                    Object.assign(o.style, {
-                      width: `${n.width}px`,
-                      height: s.height - 2,
+                    Object.assign(h.style, {
+                      width: `${o.width}px`,
+                      height: n.height - 2,
                       outline: "none",
                       background: "transparent",
                     }),
-                    o.focus(),
-                    o.addEventListener("blur", this._stopEditing),
-                    o.addEventListener("keydown", this._blurIfEnter)))
-                : ((o.type = "text"),
-                  (o.value = this._getVal(t, e)),
-                  i.appendChild(o),
-                  Object.assign(i.style, {
-                    width: s.width - 2,
-                    height: s.height,
+                    h.focus(),
+                    h.addEventListener("blur", this._stopEditing),
+                    h.addEventListener("keydown", this._blurIfEnter)))
+                : ((h.type = "text"),
+                  (h.value = this._getVal(t, e)),
+                  s.appendChild(h),
+                  Object.assign(s.style, {
+                    width: n.width - 2,
+                    height: n.height,
                   }),
-                  Object.assign(o.style, {
-                    width: `${n.width}px`,
-                    height: s.height - 2,
+                  Object.assign(h.style, {
+                    width: `${o.width}px`,
+                    height: n.height - 2,
                     outline: "none",
                     background: "transparent",
                   }),
-                  o.focus(),
-                  o.addEventListener("blur", this._stopEditing),
-                  o.addEventListener("keydown", this._blurIfEnter));
+                  h.focus(),
+                  h.addEventListener("blur", this._stopEditing),
+                  h.addEventListener("keydown", this._blurIfEnter));
             }
             _destroyEditing() {
               if (this._editing) {
@@ -831,6 +855,15 @@
                 for (let e = 0; e < this._height; e++)
                   this._refreshDisplayedValue({ x: t, y: e });
             }
+            setColor(t) {
+              t.forEach((e, i) => {
+                e.forEach((e, s) => {
+                  if (!this._columStyleChgFlag(s, !0)) return;
+                  const n = this._getCell(s, i);
+                  1 === t[i][s] && this._chgStyle(s, i, n);
+                });
+              });
+            }
             _replaceDataWithArray(t = [[]]) {
               t.forEach((t, e) => {
                 t.forEach((t, i) => {
@@ -849,6 +882,51 @@
             }
             _getCell(t, e) {
               return this.tbody.children[e].children[t];
+            }
+            _noEditFlag(t, e) {
+              return (
+                this._options.noEdit[0].includes(t) ||
+                this._options.noEdit[1].includes(e)
+              );
+            }
+            _columStyleChgFlag(t, e) {
+              return (
+                this._options.styleChg &&
+                this._options.styleChg.colum &&
+                this._options.styleChg.colum[t] &&
+                e
+              );
+            }
+            _chgStyle(t, e, i) {
+              i.hasAttribute("style") && "" !== i.getAttribute("style")
+                ? (i.removeAttribute("style"), i.removeAttribute("prior"))
+                : (i.setAttribute("prior", "on"),
+                  Object.assign(i.style, this._options.styleChg.colum[t]),
+                  this._options.styleChg.colum.link &&
+                    this._options.styleChg.colum.link
+                      .find((e) => e.includes(t))
+                      .forEach((i) => {
+                        if (i !== t) {
+                          const t = this._getCell(i, e);
+                          t.hasAttribute("style") &&
+                            "" !== t.getAttribute("style") &&
+                            (t.removeAttribute("style"),
+                            t.removeAttribute("prior"));
+                        }
+                      }));
+            }
+            _toArrColorFlag(t, e) {
+              const i = [];
+              for (let s = 0; s < e; s++) {
+                i.push([]);
+                for (let e = 0; e < t; e++) {
+                  const t = this._getCell(e, s);
+                  t.hasAttribute("prior") && "on" === t.getAttribute("prior")
+                    ? i[s].push(1)
+                    : i[s].push(0);
+                }
+              }
+              return i;
             }
           }
           function a(t, e, i) {
